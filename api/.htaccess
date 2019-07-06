@@ -1,0 +1,5 @@
+RewriteEngine On # Turn on the rewriting engine
+RewriteRule ^start/?$ start.php [NC,L]
+RewriteRule ^move/?$ move.php [NC,L]
+RewriteRule ^end/?$ end.php [NC,L]
+RewriteRule ^ping/?$ ping.php [NC,L]
