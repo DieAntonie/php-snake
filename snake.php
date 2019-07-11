@@ -28,7 +28,7 @@
 
         function observer($model)
         {
-            //logger('logs.txt', json_encode($model));
+            //logger('logs.json', json_encode($model));
             
         }
 
