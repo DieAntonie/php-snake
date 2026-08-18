@@ -1,15 +1,22 @@
 <?php
 
-require_once(__DIR__ . '/../index.php');
+require_once(__DIR__ . '/index.php');
 
 /**
  * GET /
+ * Battlesnake Details endpoint
  * Called by the game engine to check connectivity and get snake details.
- * This is the Battlesnake Details endpoint.
  */
 
+// Handle GET request
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    http_response_code(405);
+    echo json_encode(['error' => 'Method not allowed']);
+    exit;
+}
+
 try {
-    // Return snake customization
+    // Return snake customization details
     http_response_code(200);
     echo json_encode([
         'apiversion' => '1',

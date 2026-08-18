@@ -1,8 +1,36 @@
 <?php
-    function logger($file = 'logs.txt', $data)
+
+/**
+ * Utility class for logging
+ */
+class Logger
+{
+    /**
+     * Write data to log file
+     * @param string $data Data to log
+     * @param string $file Log file path
+     */
+    public static function log(string $data, string $file = 'logs.txt'): void
     {
-        file_put_contents($file, $data.PHP_EOL , FILE_APPEND | LOCK_EX);
+        file_put_contents($file, $data . PHP_EOL, FILE_APPEND | LOCK_EX);
     }
+
+    /**
+     * Write JSON data to log file
+     * @param mixed $data Data to serialize
+     * @param string $file Log file path
+     */
+    public static function logJson($data, string $file = 'logs.json'): void
+    {
+        $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        file_put_contents($file, $json . PHP_EOL . PHP_EOL, FILE_APPEND | LOCK_EX);
+    }
+}
+
+// Include all classes
+require_once(__DIR__ . '/snake.php');
+require_once(__DIR__ . '/board.php');
+require_once(__DIR__ . '/moveResponse.php');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -197,24 +225,24 @@
         <div class="content">
             <div class="card">
                 <h2>About</h2>
-                <p>PHP Snake is a backend server implementing the Battlesnake game protocol. It provides AI decision-making for a snake to compete on a shared game board against other players.</p>
-                <p>This project demonstrates game AI logic, API design, and real-time game state management in PHP.</p>
+                <p>PHP Snake is a modernized backend server implementing the Battlesnake game protocol (API v1). It provides AI decision-making for a snake to compete on a shared game board against other players.</p>
+                <p>Recently updated to support the latest Battlesnake features including hazards, ruleset information, and proper snake customizations.</p>
             </div>
             
             <div class="card">
                 <h2>Project Stats</h2>
                 <div class="stats">
                     <div class="stat">
-                        <div class="stat-number">5</div>
-                        <div class="stat-label">PHP Classes</div>
+                        <div class="stat-number">4</div>
+                        <div class="stat-label">Core Classes</div>
                     </div>
                     <div class="stat">
                         <div class="stat-number">4</div>
                         <div class="stat-label">API Endpoints</div>
                     </div>
                     <div class="stat">
-                        <div class="stat-number">15×15</div>
-                        <div class="stat-label">Board Size</div>
+                        <div class="stat-number">✅</div>
+                        <div class="stat-label">Modernized</div>
                     </div>
                 </div>
             </div>
@@ -222,10 +250,10 @@
             <div class="card">
                 <h2>Core Components</h2>
                 <ul style="margin-left: 20px; color: #555; line-height: 1.8;">
-                    <li><strong>Snake Class</strong> - Represents a player snake with movement logic</li>
-                    <li><strong>Board Class</strong> - Models the game board state</li>
-                    <li><strong>MoveResponse</strong> - Encapsulates movement decisions</li>
-                    <li><strong>Logger</strong> - Utility for debugging and logging</li>
+                    <li><strong>Snake</strong> - AI logic and movement decision making</li>
+                    <li><strong>Board</strong> - Game board state with hazards support</li>
+                    <li><strong>Game</strong> - Game metadata and ruleset information</li>
+                    <li><strong>Logger</strong> - JSON and text logging utilities</li>
                 </ul>
             </div>
             
@@ -233,38 +261,38 @@
                 <h2>Tech Stack</h2>
                 <div class="tech-stack">
                     <span class="badge">PHP 7.0+</span>
+                    <span class="badge">Battlesnake API v1</span>
                     <span class="badge">JSON</span>
-                    <span class="badge">REST API</span>
-                    <span class="badge">Battlesnake</span>
+                    <span class="badge">Type Hints</span>
                 </div>
             </div>
         </div>
         
         <div class="endpoints">
-            <h2>API Endpoints</h2>
+            <h2>API Endpoints (Battlesnake API v1)</h2>
+            
+            <div class="endpoint">
+                <span class="endpoint-method">GET</span>
+                <span class="endpoint-path">/info.php</span>
+                <div class="endpoint-desc"><strong>Battlesnake Details:</strong> Returns snake customization (color, head, tail, version). Called by game engine to verify connectivity.</div>
+            </div>
             
             <div class="endpoint">
                 <span class="endpoint-method">POST</span>
                 <span class="endpoint-path">/api/start.php</span>
-                <div class="endpoint-desc">Initialize the snake. Returns snake appearance configuration (color, head type, tail type).</div>
+                <div class="endpoint-desc"><strong>Game Started:</strong> Called when a new game begins. Receives initial board state, game metadata, and your snake info. Response is ignored.</div>
             </div>
             
             <div class="endpoint">
                 <span class="endpoint-method">POST</span>
                 <span class="endpoint-path">/api/move.php</span>
-                <div class="endpoint-desc">Main game loop. Receives board state and current snake position. Returns the next move direction (up, down, left, right).</div>
-            </div>
-            
-            <div class="endpoint">
-                <span class="endpoint-method">POST</span>
-                <span class="endpoint-path">/api/ping.php</span>
-                <div class="endpoint-desc">Health check endpoint. Called to verify the server is responsive and operational.</div>
+                <div class="endpoint-desc"><strong>Main Game Loop:</strong> Called every turn. Receives current board state and returns your snake's move direction (up/down/left/right) plus optional shout message.</div>
             </div>
             
             <div class="endpoint">
                 <span class="endpoint-method">POST</span>
                 <span class="endpoint-path">/api/end.php</span>
-                <div class="endpoint-desc">Game termination handler. Called when the game ends to cleanup and log results.</div>
+                <div class="endpoint-desc"><strong>Game Over:</strong> Called when the game ends. Use to log results and cleanup resources. Response is ignored.</div>
             </div>
         </div>
         
