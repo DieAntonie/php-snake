@@ -72,7 +72,7 @@ class Snake
 
         if (empty($food)) {
             // Default move if no food
-            return ['move' => 'up', 'shout' => 'No food found!'];
+            return ['move' => 'down', 'shout' => 'No food found!'];
         }
 
         // Find nearest food
