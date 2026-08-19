@@ -1,31 +1,4 @@
 <?php
-
-/**
- * Utility class for logging
- */
-class Logger
-{
-    /**
-     * Write data to log file
-     * @param string $data Data to log
-     * @param string $file Log file path
-     */
-    public static function log(string $data, string $file = 'logs.txt'): void
-    {
-        file_put_contents($file, $data . PHP_EOL, FILE_APPEND | LOCK_EX);
-    }
-
-    /**
-     * Write JSON data to log file
-     * @param mixed $data Data to serialize
-     * @param string $file Log file path
-     */
-    public static function logJson($data, string $file = 'logs.json'): void
-    {
-        $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-        file_put_contents($file, $json . PHP_EOL . PHP_EOL, FILE_APPEND | LOCK_EX);
-    }
-}
 /**
  * POST /move
  * Called every turn. Returns the snake's move decision.
@@ -58,13 +31,14 @@ try {
     }
 
     // Log the move
-    Logger::logJson([
+    $json = json_encode([
         'event' => 'move',
         'game_id' => $game->getId(),
         'turn' => $turn,
         'move' => $moveResponse['move'],
         'health' => $snake->getHealth()
-    ]);
+    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    file_put_contents('logs.txt', $json . PHP_EOL . PHP_EOL, FILE_APPEND | LOCK_EX);
 
     // Return the move response
     http_response_code(200);
@@ -74,8 +48,8 @@ try {
     ]);
 
 } catch (Exception $e) {
-    http_response_code(500);
     echo json_encode(['error' => $e->getMessage()]);
-    Logger::log('MOVE Error: ' . $e->getMessage());
+    file_put_contents('logs.txt', 'MOVE Error: ' . $e->getMessage() . PHP_EOL, FILE_APPEND | LOCK_EX);
+    http_response_code(500);
 }
 ?>
