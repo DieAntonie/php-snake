@@ -29,7 +29,8 @@ try {
     // Ensure move is valid
     $validMoves = ['up', 'down', 'left', 'right'];
     if (!in_array($moveResponse['move'], $validMoves)) {
-        $moveResponse['move'] = 'up';
+        $moveResponse['move'] = 'down'; // Default to down if invalid
+        $moveResponse['shout'] = 'Invalid move! Defaulting to down.';
     }
 
     // Log the move
