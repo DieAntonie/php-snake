@@ -50,6 +50,6 @@ try {
 } catch (Exception $e) {
     echo json_encode(['error' => $e->getMessage()]);
     file_put_contents('logs.txt', 'MOVE Error: ' . $e->getMessage() . PHP_EOL, FILE_APPEND | LOCK_EX);
-    http_response_code(500);
+    http_response_code(505);
 }
 ?>
