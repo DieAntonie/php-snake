@@ -20,7 +20,7 @@ This project has been updated from a 2019 implementation to be fully compatible 
 
 ### New Features:
 - 📝 **Structured Logging** - JSON logging for debugging and analytics
-- 🎮 **Improved AI** - Manhattan distance algorithm for targeting nearest food
+- 🎮 **Improved AI** - Collision- and hazard-aware food targeting
 - 🛡️ **Error Handling** - Comprehensive exception handling in all endpoints
 - 📚 **PHPDoc Comments** - Full documentation for all methods
 
@@ -129,15 +129,15 @@ Valid moves: `"up"`, `"down"`, `"left"`, `"right"`
 
 ## 🤖 AI Logic
 
-The default AI uses a **simple greedy algorithm**:
+The default AI uses a **local safety-first algorithm**:
 
-1. Find all food on the board
-2. Calculate Manhattan distance to each food piece
-3. Move towards the nearest food
-4. Prioritize vertical movement if food is more vertically aligned
+1. Find the nearest food on the board
+2. Reject moves outside the board or into this snake's body
+3. Reject moves into other snakes' bodies
+4. Prefer non-hazardous moves
+5. Move towards the nearest food among the remaining candidates
 
-This is a simple starter strategy. You can improve it by:
-- Avoiding walls and other snakes
+This is a one-step safety strategy rather than full pathfinding. You can improve it by:
 - Implementing path finding (A*, Dijkstra)
 - Predicting opponent movements
 - Managing health and timing
