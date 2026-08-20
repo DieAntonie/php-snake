@@ -81,7 +81,7 @@ class Snake
 
         return [
             'move' => $move,
-            'shout' => 'Moving towards food!'
+            'shout' => 'Moving my head (' . $head['x'] . ', ' . $head['y'] . ') towards food at (' . $nearestFood['x'] . ', ' . $nearestFood['y'] . ')!'
         ];
     }
 
@@ -131,7 +131,7 @@ class Snake
 
         // Prioritize vertical movement if significant
         if (abs($dy) > abs($dx)) {
-            return $dy > 0 ? 'down' : 'up';
+            return $dy > 0 ? 'up' : 'down';
         } else {
             return $dx > 0 ? 'right' : 'left';
         }
