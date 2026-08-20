@@ -1,4 +1,9 @@
 <?php
+
+require_once(__DIR__ . '/../bootstrap.php');
+
+header('Content-Type: application/json; charset=utf-8');
+
 /**
  * POST /move
  * Called every turn. Returns the snake's move decision.
@@ -26,19 +31,17 @@ try {
     // Ensure move is valid
     $validMoves = ['up', 'down', 'left', 'right'];
     if (!in_array($moveResponse['move'], $validMoves)) {
-        $moveResponse['move'] = 'down'; // Default to down if invalid
-        $moveResponse['shout'] = 'Invalid move! Defaulting to down.';
+        $moveResponse['move'] = 'up';
     }
 
     // Log the move
-    $json = json_encode([
+    Logger::logJson([
         'event' => 'move',
         'game_id' => $game->getId(),
         'turn' => $turn,
         'move' => $moveResponse['move'],
         'health' => $snake->getHealth()
-    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-    file_put_contents('logs.txt', $json . PHP_EOL . PHP_EOL, FILE_APPEND | LOCK_EX);
+    ]);
 
     // Return the move response
     http_response_code(200);
@@ -48,8 +51,8 @@ try {
     ]);
 
 } catch (Exception $e) {
+    http_response_code(500);
     echo json_encode(['error' => $e->getMessage()]);
-    file_put_contents('logs.txt', 'MOVE Error: ' . $e->getMessage() . PHP_EOL, FILE_APPEND | LOCK_EX);
-    http_response_code(505);
+    Logger::log('MOVE Error: ' . $e->getMessage());
 }
 ?>

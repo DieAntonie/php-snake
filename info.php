@@ -1,6 +1,8 @@
 <?php
 
-require_once(__DIR__ . '/index.php');
+require_once(__DIR__ . '/bootstrap.php');
+
+header('Content-Type: application/json; charset=utf-8');
 
 /**
  * GET /
