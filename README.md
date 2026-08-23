@@ -1,5 +1,7 @@
 # PHP Snake - Modernized Battlesnake AI Server
 
+[![Tests](https://github.com/DieAntonie/php-snake/actions/workflows/tests.yml/badge.svg?branch=master)](https://github.com/DieAntonie/php-snake/actions/workflows/tests.yml)
+
 A modernized PHP implementation of the [Battlesnake](https://www.battlesnake.com/) game API (v1). This project has been updated to be fully compatible with the current Battlesnake specification.
 
 ## 🎯 Overview
