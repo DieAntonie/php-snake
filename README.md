@@ -161,6 +161,22 @@ php -S localhost:8000
 curl http://localhost:8000/info.php
 ```
 
+### Tests
+
+The project includes a dependency-free CLI test suite organized by domain:
+
+```bash
+# Run all tests
+php tests/run.php
+
+# Run one domain independently
+php tests/board_tests.php
+php tests/snake_tests.php
+php tests/game_tests.php
+```
+
+The suite checks board boundaries, hazards, food targeting, hazard avoidance, opponent collision avoidance, and game metadata. Endpoint behavior can be exercised separately through the PHP built-in server and HTTP requests.
+
 ### Deployment
 
 Configure your Battlesnake server URL to point to your deployed instance:
