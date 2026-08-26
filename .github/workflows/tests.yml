@@ -24,7 +24,10 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
-          coverage: none
+          coverage: xdebug
 
       - name: Run test suite
         run: php tests/run.php
+
+      - name: Check code coverage
+        run: php tests/coverage.php

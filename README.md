@@ -175,9 +175,14 @@ php tests/run.php
 php tests/board_tests.php
 php tests/snake_tests.php
 php tests/game_tests.php
+
+# Run the coverage check locally
+php -d xdebug.mode=coverage tests/coverage.php
 ```
 
-The suite checks board boundaries, hazards, food targeting, hazard avoidance, opponent collision avoidance, and game metadata. Endpoint behavior can be exercised separately through the PHP built-in server and HTTP requests.
+The suite checks board boundaries, hazards, food targeting, hazard avoidance, opponent collision avoidance, and game metadata. The coverage check requires Xdebug with coverage mode enabled. Endpoint behavior can be exercised separately through the PHP built-in server and HTTP requests.
+
+GitHub Actions also runs the suite with Xdebug and requires at least 70% line coverage for the core classes.
 
 ### Deployment
 
