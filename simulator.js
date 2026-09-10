@@ -6,6 +6,27 @@
  */
 
 /**
+ * Simulator `requesting` API status.
+ */
+const REQUESTING_STATUS = 'requesting';
+/**
+ * Simulator `ready` to call API status.
+ */
+const READY_STATUS = 'ready';
+/**
+ * Simulator API `request failed` status.
+ */
+const REQUEST_FAILED_STATUS = 'request failed';
+/**
+ * Simulator `starting` status.
+ */
+const STARTING_STATUS = 'starting';
+/**
+ * Simulator `start failed` status.
+ */
+const START_FAILED_STATUS = 'start failed';
+
+/**
  * A tile on the game board.
  * @typedef {Object} Tile
  * @property {number} x - The x coordinate.
@@ -204,12 +225,40 @@ class Game {
  * State of the simulator.
  */
 const state = {
+    /**
+     * The current game.
+     * @type {Game}
+     */
     game: null,
+    /**
+     * The current game board.
+     * @type {Board}
+     */
     board: null,
+    /**
+     * The player's snake.
+     * @type {Snake}
+     */
     you: null,
+    /**
+     * The current turn number.
+     * @type {number}
+     */
     turn: 0,
+    /**
+     * The maximum number of turns.
+     * @type {number}
+     */
     maxTurns: 30,
+    /**
+     * Whether the game is running.
+     * @type {boolean}
+     */
     running: false,
+    /**
+     * Whether the game has ended.
+     * @type {boolean}
+     */
     ended: false
 };
 
@@ -240,17 +289,34 @@ const apiPaths = {
  * DOM elements for the simulator.
  */
 const elements = {
+    /** The game board element. */
     board: document.getElementById('board'),
+    /** The events element. */
     events: document.getElementById('events'),
+    /** The fixture element. */
     fixture: document.getElementById('fixture'),
+    /** The height element. */
     height: document.getElementById('height'),
+    /** The maximum turns element. */
     maxTurns: document.getElementById('maxTurns'),
+    /** The play element. */
     play: document.getElementById('play'),
+    /** The reset element. */
     reset: document.getElementById('reset'),
+    /** The status element. */
     status: document.getElementById('status'),
+    /** The step element. */
     step: document.getElementById('step'),
+    /** The turn element. */
     turn: document.getElementById('turn'),
-    width: document.getElementById('width')
+    /** The width element. */
+    width: document.getElementById('width'),
+    /** The initial snake length element. */
+    initialLength: document.getElementById('initialLength'),
+    /** The initial snake start x position element. */
+    initialXPosition: document.getElementById('initialXPosition'),
+    /** The initial snake start y position element. */
+    initialYPosition: document.getElementById('initialYPosition')
 };
 
 /**
@@ -322,22 +388,18 @@ function createGame() {
 
 /**
  * Create a new snake.
+ * @param {Tile} initial_position - The initial position of the snake's head.
+ * @param {number} length - The initial length of the snake.
  * @return {Snake} The new snake.
  */
-function createSnake() {
+function createSnake(initial_position = { x: 1, y: 1 }, length = 3) {
     return {
         id: 'you',
         name: 'PHP Snake',
         health: 100,
-        body: [{
-            x: 1,
-            y: 1
-        }],
-        head: {
-            x: 1,
-            y: 1
-        },
-        length: 1,
+        body: Array.from({ length }, () => (initial_position)),
+        head: initial_position,
+        length: length,
         latency: '0',
         shout: '',
         customizations: {
@@ -456,7 +518,7 @@ function collision(tile) {
  */
 async function step() {
     if (state.ended) return;
-    setStatus('requesting');
+    setStatus(REQUESTING_STATUS);
     try {
         const response = await api(apiPaths.move, payload());
         log(`MOVE ${state.turn}`, response);
@@ -483,11 +545,11 @@ async function step() {
         if (state.you.health <= 0) finish('health depleted');
         else if (state.turn >= state.maxTurns) finish('turn limit reached');
         else {
-            setStatus('ready');
+            setStatus(READY_STATUS);
         }
     } catch (error) {
         state.running = false;
-        setStatus('request failed', true);
+        setStatus(REQUEST_FAILED_STATUS, true);
         log('ERROR', error.message);
     }
 }
@@ -519,21 +581,26 @@ async function reset() {
     state.maxTurns = Number(elements.maxTurns.value);
     state.ended = false;
     state.running = false;
-    state.you = createSnake();
+    state.you = createSnake(
+        new Tile(
+            Number(elements.initialXPosition.value),
+            Number(elements.initialYPosition.value)),
+        Number(elements.initialLength.value)
+    );
     elements.step.disabled = false;
     elements.play.textContent = 'Auto-play';
     elements.events.innerHTML = '';
     render();
-    setStatus('starting');
+    setStatus(STARTING_STATUS);
     try {
         await api(apiPaths.start, payload());
         log('START', {
             game: state.game.id,
             fixture: elements.fixture.value
         });
-        setStatus('ready');
+        setStatus(READY_STATUS);
     } catch (error) {
-        setStatus('start failed', true);
+        setStatus(START_FAILED_STATUS, true);
         log('START ERROR', error.message);
     }
 }

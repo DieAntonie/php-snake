@@ -34,7 +34,14 @@
                         <div><label for="width">Width</label><input id="width" type="number" min="3" max="20" value="8"></div>
                         <div><label for="height">Height</label><input id="height" type="number" min="3" max="20" value="8"></div>
                     </div>
-                    <label for="maxTurns">Turn limit</label><input id="maxTurns" type="number" min="1" max="500" value="30">
+                    <div class="fields">
+                        <div><label for="maxTurns">Turn limit</label><input id="maxTurns" type="number" min="1" max="500" value="30"></div>
+                        <div><label for="initialLength">Initial length</label><input id="initialLength" type="number" min="1" max="10" value="3"></div>
+                    </div>
+                    <div class="fields">
+                        <div><label for="initialXPosition">Initial X position</label><input id="initialXPosition" type="number" min="0" max="20" value="1"></div>
+                        <div><label for="initialYPosition">Initial Y position</label><input id="initialYPosition" type="number" min="0" max="20" value="1"></div>
+                    </div>
                     <label for="fixture">Fixture</label><select id="fixture">
                         <option value="food">Food route</option>
                         <option value="hazard">Hazard avoidance</option>
