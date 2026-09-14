@@ -252,15 +252,15 @@ const simulator = (() => {
          */
         maxTurns: 30,
         /**
-         * Whether the game is running.
+         * Whether the game is currently in play(`true`) or paused(`false`).
          * @type {boolean}
          */
-        running: false,
+        inPlay: false,
         /**
          * Whether the game has ended.
          * @type {boolean}
          */
-        ended: false
+        hasEnded: false
     };
 
     /**
@@ -505,8 +505,8 @@ const simulator = (() => {
          * @param {string} message - The finish message.
          */
         async finish(message) {
-            state.ended = true;
-            state.running = false;
+            state.hasEnded = true;
+            state.inPlay = false;
             elements.play.textContent = 'Auto-play';
             elements.step.disabled = true;
             this.setStatus(message, true);
@@ -537,17 +537,17 @@ const simulator = (() => {
          * @return {Promise<void>} A promise that resolves when the step is complete.
          */
         async step() {
-            if (state.ended) return;
+            if (state.hasEnded) return;
             ui.setStatus(REQUESTING_STATUS);
             try {
                 const response = await api.move();
                 ui.log(`MOVE ${state.turn}`, response);
                 const delta = directions[response.move];
                 if (!delta) throw new Error(`Invalid move: ${response.move}`);
-                const next = {
-                    x: state.you.head.x + delta.x,
-                    y: state.you.head.y + delta.y
-                };
+                const next = new Tile(
+                    state.you.head.x + delta.x,
+                    state.you.head.y + delta.y
+                );
                 if (this.collision(next)) {
                     ui.render();
                     await ui.finish(`collision (${response.move})`);
@@ -570,7 +570,7 @@ const simulator = (() => {
                     ui.setStatus(READY_STATUS);
                 }
             } catch (error) {
-                state.running = false;
+                state.inPlay = false;
                 ui.setStatus(REQUEST_FAILED_STATUS, true);
                 ui.log('ERROR', error.message);
             }
@@ -579,15 +579,15 @@ const simulator = (() => {
         /**
          * Play or pause the game.
          */
-        async play() {
-            if (state.running) {
-                state.running = false;
+        async playOrPause() {
+            if (state.inPlay) {
+                state.inPlay = false;
                 elements.play.textContent = 'Auto-play';
                 return;
             }
-            state.running = true;
+            state.inPlay = true;
             elements.play.textContent = 'Pause';
-            while (state.running && !state.ended) {
+            while (state.inPlay && !state.hasEnded) {
                 await this.step();
                 await new Promise((resolve) => setTimeout(resolve, 450));
             }
@@ -601,8 +601,8 @@ const simulator = (() => {
             state.board = domain.createBoard();
             state.turn = 0;
             state.maxTurns = Number(elements.maxTurns.value);
-            state.ended = false;
-            state.running = false;
+            state.hasEnded = false;
+            state.inPlay = false;
             state.you = domain.createSnake(
                 new Tile(Number(elements.initialXPosition.value), Number(elements.initialYPosition.value)),
                 Number(elements.initialLength.value)
@@ -632,7 +632,7 @@ const simulator = (() => {
     const bindEvents = () => {
         elements.reset.addEventListener('click', () => game.reset());
         elements.step.addEventListener('click', () => game.step());
-        elements.play.addEventListener('click', () => game.play());
+        elements.play.addEventListener('click', () => game.playOrPause());
         elements.fixture.addEventListener('change', () => game.reset());
         window.addEventListener('load', () => game.reset());
     };
