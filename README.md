@@ -148,20 +148,147 @@ This is a one-step safety strategy rather than full pathfinding. You can improve
 
 ### Requirements
 - PHP 7.0+
-- Web server (Apache, Nginx, or PHP built-in server)
+- Apache (XAMPP is the recommended Windows setup)
+- Git
+- A web browser
+- Visual Studio Code (recommended)
+- Xdebug for code coverage and step debugging (use a version compatible with the installed PHP build; Xdebug 3.x is recommended for current XAMPP releases)
+- Node.js and npm are optional for the current browser-based simulator, but installing them with nvm is recommended for future JavaScript tooling
 
-### Local Development
+## 🚦 Getting Started
 
-```bash
-# Navigate to project directory
-cd php-snake
+These instructions use Windows and assume the repository is located at `C:\Users\<username>\source\repos\php-snake`. Replace that path with the actual repository location when needed.
 
-# Start PHP built-in server
-php -S localhost:8000
+### 1. Install the required tools
 
-# Test the info endpoint
-curl http://localhost:8000/info.php
+1. Install [XAMPP for Windows](https://www.apachefriends.org/). The examples below assume it is installed at `C:\xampp`.
+2. Install [Git for Windows](https://git-scm.com/download/win).
+3. Install [Visual Studio Code](https://code.visualstudio.com/).
+4. In VS Code, install the **PHP Intelephense** and **PHP Debug** extensions.
+5. Install [nvm-windows](https://github.com/coreybutler/nvm-windows/releases) if you need Node.js tooling:
+
+  ```powershell
+  nvm install lts
+  nvm use lts
+  node --version
+  npm --version
+  ```
+
+  The current simulator does not require npm packages; it loads `simulator.js` directly in the browser.
+
+### 2. Configure XAMPP Apache for this repository
+
+The repository does not need to be copied into `C:\xampp\htdocs`. Configure Apache to serve the existing checkout instead:
+
+1. Open `C:\xampp\apache\conf\extra\httpd-vhosts.conf` as Administrator.
+2. Add this virtual host, changing the path if your checkout is elsewhere:
+
+  ```apache
+  <VirtualHost *:80>
+     ServerName snake.local
+     DocumentRoot "C:/Users/<username>/source/repos/php-snake"
+     <Directory "C:/Users/<username>/source/repos/php-snake">
+        AllowOverride All
+        Require all granted
+     </Directory>
+  </VirtualHost>
+  ```
+
+3. If the file is not already included, uncomment this line in `C:\xampp\apache\conf\httpd.conf`:
+
+  ```apache
+  Include conf/extra/httpd-vhosts.conf
+  ```
+
+4. In the XAMPP Control Panel, restart Apache. If Apache does not start, check that port 80 is available and review `C:\xampp\apache\logs\error.log`.
+
+### 3. Configure the `snake.local` host name
+
+1. Open Notepad as Administrator.
+2. Open `C:\Windows\System32\drivers\etc\hosts` (select **All Files** if the file is not visible).
+3. Add:
+
+  ```text
+  127.0.0.1 snake.local
+  ```
+
+4. Browse to [http://snake.local/info.php](http://snake.local/info.php). The page should return the snake information as JSON.
+
+You can also verify the host and Apache configuration from PowerShell:
+
+```powershell
+ping snake.local
+Invoke-RestMethod http://snake.local/info.php
 ```
+
+### 4. Install Xdebug into XAMPP
+
+Xdebug must be installed for the PHP executable used by XAMPP. Do not install the DLL into the Node.js or Apache directories. The steps below use Xdebug 3.x; for older PHP versions, use the Xdebug version recommended by the installation wizard and follow its matching configuration syntax.
+
+1. In a PowerShell window, check the XAMPP PHP build:
+
+  ```powershell
+  C:\xampp\php\php.exe -i | Select-String 'PHP Version|Thread Safety|Architecture|Compiler'
+  ```
+
+2. Copy the complete output into the [Xdebug installation wizard](https://xdebug.org/wizard) and download the recommended Windows DLL.
+3. Copy the downloaded DLL into `C:\xampp\php\ext\`.
+4. Open `C:\xampp\php\php.ini` and add or update:
+
+  ```ini
+  [Xdebug]
+  zend_extension="C:\xampp\php\ext\php_xdebug.dll"
+  xdebug.mode=develop,debug,coverage
+  xdebug.start_with_request=yes
+  xdebug.client_host=127.0.0.1
+  xdebug.client_port=9003
+  ```
+
+  Use the exact DLL filename downloaded by the wizard if it differs from `php_xdebug.dll`.
+5. Restart Apache and verify the CLI configuration. Run both checks because the CLI and Apache can use different `php.ini` files:
+
+  ```powershell
+  C:\xampp\php\php.exe -v
+  C:\xampp\php\php.exe --ini
+  ```
+
+  The output should include an Xdebug version and the `coverage` mode. To verify Apache, create a temporary `phpinfo.php` containing `<?php phpinfo();` in the repository, open `http://snake.local/phpinfo.php`, and delete the file afterwards.
+
+### 5. Configure PHP and VS Code
+
+Use the XAMPP PHP executable when running commands from this repository:
+
+```powershell
+Set-Alias php C:\xampp\php\php.exe
+php --version
+```
+
+For a persistent setup, add `C:\xampp\php` to the Windows user `PATH`, then open a new terminal. In VS Code, set the PHP executable path in `settings.json` if PHP Intelephense cannot find it:
+
+```json
+{
+   "intelephense.environment.phpVersion": "7.0",
+   "php.validate.executablePath": "C:\\xampp\\php\\php.exe"
+}
+```
+
+Set `intelephense.environment.phpVersion` to the actual PHP version installed with your XAMPP release when it is newer than 7.0.
+
+### 6. Run and test locally
+
+Open `http://snake.local/` to use the overview page and `http://snake.local/simulator.php` to run the browser simulator. The simulator calls the PHP API through the same Apache virtual host.
+
+Run the dependency-free test suite from the repository root:
+
+```powershell
+php tests/run.php
+php tests/board_tests.php
+php tests/snake_tests.php
+php tests/game_tests.php
+php -d xdebug.mode=coverage tests/coverage.php
+```
+
+The last command requires Xdebug with coverage mode enabled and must report at least 70% coverage. For a quick API check, use the simulator page or send a valid Battlesnake `/move` JSON payload to `http://snake.local/api/move.php`.
 
 ### Tests
 
