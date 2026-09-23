@@ -313,6 +313,18 @@ GitHub Actions also runs the suite with Xdebug and requires at least 70% line co
 
 ### Deployment
 
+The `Deploy to shared hosting` workflow runs after changes are pushed to `master` or when it is started manually from the GitHub Actions tab. Before deploying, it runs the test suite and coverage check with PHP 8.2 and Xdebug. The deployment runs only when those checks pass.
+
+Add these repository secrets under **Settings > Secrets and variables > Actions**:
+
+- `SSH_HOST` - `chrisantoniepieterse.nl`
+- `SSH_PORT` - the SSH port configured by the hosting provider
+- `SSH_USER` - the SSH login username
+- `SSH_PRIVATE_KEY` - the private key matching the public key installed for `SSH_USER` on the server
+- `WORK_DIR` - the absolute or provider-specific remote directory for this site
+
+The workflow uses the private key to connect over SSH, creates a temporary `tar.gz` archive, uploads it with `scp`, and extracts it into `WORK_DIR`. It excludes Git metadata, GitHub configuration, tests, documentation, and the mind map.
+
 Configure your Battlesnake server URL to point to your deployed instance:
 - Info endpoint: `http://your-domain.com/info.php`
 - Start endpoint: `http://your-domain.com/api/start.php`
