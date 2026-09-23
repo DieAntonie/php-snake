@@ -68,6 +68,12 @@ jobs:
             -p "$SSH_PORT"
           )
 
+          scp_options=(
+            -i "$HOME/.ssh/deploy_key"
+            -o IdentitiesOnly=yes
+            -P "$SSH_PORT"
+          )
+
           remote="$SSH_USER@$SSH_HOST"
           remote_archive="/tmp/php-snake-${GITHUB_RUN_ID}.tar.gz"
           archive="$(mktemp "${RUNNER_TEMP}/php-snake.XXXXXX.tar.gz")"
@@ -87,7 +93,7 @@ jobs:
 
           echo "Uploading deployment archive..."
           scp \
-            "${ssh_options[@]}" \
+            "${scp_options[@]}" \
             "$archive" \
             "$remote:$remote_archive"
 
