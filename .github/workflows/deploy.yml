@@ -45,30 +45,56 @@ jobs:
 
       - name: Deploy over SSH
         env:
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          SSH_USER: ${{ secrets.SSH_USER }}
-          WORK_DIR: ${{ secrets.WORK_DIR }}
+            SSH_HOST: ${{ secrets.SSH_HOST }}
+            SSH_PORT: ${{ secrets.SSH_PORT }}
+            SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+            SSH_USER: ${{ secrets.SSH_USER }}
+            WORK_DIR: ${{ secrets.WORK_DIR }}
         shell: bash
         run: |
-          set -euo pipefail
+            set -euo pipefail
 
-          install -d -m 700 "$HOME/.ssh"
-          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/deploy_key"
-          chmod 600 "$HOME/.ssh/deploy_key"
-          ssh-keyscan -H "$SSH_HOST" >> "$HOME/.ssh/known_hosts"
+            install -d -m 700 "$HOME/.ssh"
 
-          ssh_options=(-i "$HOME/.ssh/deploy_key" -o IdentitiesOnly=yes)
-          archive="$RUNNER_TEMP/php-snake.tar.gz"
+            printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/deploy_key"
+            chmod 600 "$HOME/.ssh/deploy_key"
 
-          tar --exclude='./.git' \
+            ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" \
+            >> "$HOME/.ssh/known_hosts"
+
+            ssh_options=(
+            -i "$HOME/.ssh/deploy_key"
+            -o IdentitiesOnly=yes
+            -p "$SSH_PORT"
+            )
+
+            archive="$RUNNER_TEMP/php-snake.tar.gz"
+            remote="$SSH_USER@$SSH_HOST"
+            remote_archive="/tmp/php-snake-$GITHUB_RUN_ID.tar.gz"
+
+            tar \
+            --exclude='./.git' \
             --exclude='./.github' \
             --exclude='./tests' \
             --exclude='./README.md' \
             --exclude='./snake-mind-map.excalidraw' \
             -czf "$archive" .
 
-          remote="$SSH_USER@$SSH_HOST"
-          remote_archive="/tmp/php-snake-$GITHUB_RUN_ID.tar.gz"
-          scp "${ssh_options[@]}" "$archive" "$remote:$remote_archive"
-          ssh "${ssh_options[@]}" "$remote" "mkdir -p -- $(printf '%q' "$WORK_DIR") && tar -xzf $(printf '%q' "$remote_archive") -C $(printf '%q' "$WORK_DIR") && rm -f $(printf '%q' "$remote_archive")"
+            echo "Uploading deployment archive..."
+
+            scp \
+            "${ssh_options[@]}" \
+            "$archive" \
+            "$remote:$remote_archive"
+
+            echo "Extracting deployment..."
+
+            ssh \
+            "${ssh_options[@]}" \
+            "$remote" \
+            "mkdir -p -- $(printf '%q' "$WORK_DIR") &&
+            tar -xzf $(printf '%q' "$remote_archive") \
+                -C $(printf '%q' "$WORK_DIR") &&
+            rm -f $(printf '%q' "$remote_archive")"
+
+            echo "Deployment complete."
