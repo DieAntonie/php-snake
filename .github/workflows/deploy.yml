@@ -43,17 +43,32 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Deploy over FTPS
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          protocol: ftps
-          server-dir: ${{ secrets.WORK_DIR }}
-          exclude: |
-            **/.git*/**
-            **/.github/**
-            **/tests/**
-            **/README.md
-            **/snake-mind-map.excalidraw
+      - name: Deploy over SSH
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          WORK_DIR: ${{ secrets.WORK_DIR }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/deploy_key"
+          chmod 600 "$HOME/.ssh/deploy_key"
+          ssh-keyscan -H "$SSH_HOST" >> "$HOME/.ssh/known_hosts"
+
+          ssh_options=(-i "$HOME/.ssh/deploy_key" -o IdentitiesOnly=yes)
+          archive="$RUNNER_TEMP/php-snake.tar.gz"
+
+          tar --exclude='./.git' \
+            --exclude='./.github' \
+            --exclude='./tests' \
+            --exclude='./README.md' \
+            --exclude='./snake-mind-map.excalidraw' \
+            -czf "$archive" .
+
+          remote="$SSH_USER@$SSH_HOST"
+          remote_archive="/tmp/php-snake-$GITHUB_RUN_ID.tar.gz"
+          scp "${ssh_options[@]}" "$archive" "$remote:$remote_archive"
+          ssh "${ssh_options[@]}" "$remote" "mkdir -p -- $(printf '%q' "$WORK_DIR") && tar -xzf $(printf '%q' "$remote_archive") -C $(printf '%q' "$WORK_DIR") && rm -f $(printf '%q' "$remote_archive")"
